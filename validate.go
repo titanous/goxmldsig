@@ -111,7 +111,10 @@ func (ctx *ValidationContext) transform(
 	transforms := ref.Transforms.Transforms
 
 	if len(transforms) != 2 {
-		return nil, nil, errors.New("Expected Enveloped and C14N transforms")
+		//Just use the Signature->SignedInfo->CanonicalizationMethod per spec
+		var t types.Transform
+		t.Algorithm = sig.SignedInfo.CanonicalizationMethod.Algorithm
+		transforms = append(transforms, t)
 	}
 
 	// map the path to the passed signature relative to the passed root, in
