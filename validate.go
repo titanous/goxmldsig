@@ -110,13 +110,6 @@ func (ctx *ValidationContext) transform(
 	ref *types.Reference) (*etree.Element, Canonicalizer, error) {
 	transforms := ref.Transforms.Transforms
 
-	if len(transforms) != 2 {
-		//Just use the Signature->SignedInfo->CanonicalizationMethod per spec
-		var t types.Transform
-		t.Algorithm = sig.SignedInfo.CanonicalizationMethod.Algorithm
-		transforms = append(transforms, t)
-	}
-
 	// map the path to the passed signature relative to the passed root, in
 	// order to enable removal of the signature by an enveloped signature
 	// transform
@@ -159,7 +152,7 @@ func (ctx *ValidationContext) transform(
 	}
 
 	if canonicalizer == nil {
-		return nil, nil, errors.New("Expected canonicalization transform")
+		canonicalizer = MakeNullCanonicalizer()
 	}
 
 	return el, canonicalizer, nil
@@ -348,13 +341,13 @@ func (ctx *ValidationContext) findSignature(el *etree.Element) (*types.Signature
 					canonicalSignedInfo = detachedSignedInfo
 
 				case CanonicalXML11AlgorithmId:
-					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{})
+					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{}, true)
 
 				case CanonicalXML10RecAlgorithmId:
-					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{})
+					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{}, true)
 
 				case CanonicalXML10CommentAlgorithmId:
-					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{})
+					canonicalSignedInfo = canonicalPrep(detachedSignedInfo, map[string]struct{}{}, true)
 
 				default:
 					return fmt.Errorf("invalid CanonicalizationMethod on Signature: %s", c14NAlgorithm)
